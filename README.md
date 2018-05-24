@@ -18,7 +18,7 @@ When you would like to sync documentation just on merge/push to master, put to b
 set env variable JIRA_USER and JIRA_PASSWORD to allow updater write access to page
 
 
-    image: iapp/confluence-sync
+    image: zonkyio/confluence-sync
 
     pipelines:
       branches:
