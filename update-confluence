@@ -1,0 +1,39 @@
+#!/bin/bash
+
+
+# set in env
+# JIRA_USER
+# JIRA_PASSWORD
+
+
+# arguments
+SOURCE_FILE=${1}
+ID=${2}
+TITLE=${3}
+
+
+
+FNAME="$(basename ${SOURCE_FILE} | cut -d. -f1)"
+
+next_version=$(curl -u ${JIRA_USER}:${JIRA_PASSWORD} -X GET -H 'Content-Type: application/json' \
+    https://hcpeer2peer.atlassian.net/wiki/rest/api/content/${ID} | python -c 'import json, sys; print(json.load(sys.stdin)["version"]["number"] + 1)')
+
+mdtohtml ${SOURCE_FILE} /tmp/__${FNAME}
+
+curl -u ${JIRA_USER}:${JIRA_PASSWORD} -X PUT -H 'Content-Type: application/json' https://hcpeer2peer.atlassian.net/wiki/rest/api/content/${ID} \
+        -d @- << EOF
+{
+  "id": "${ID}",
+  "type": "page",
+  "title": "${TITLE}",
+  "body": {
+    "storage": {
+      "value": "$(cat /tmp/__${FNAME} | sed 's/\"/\\\\"/g' | while read l; do echo "$l"; done)",
+      "representation":"storage"
+    }
+  },
+  "version":{
+    "number": ${next_version}
+  }
+}
+EOF
