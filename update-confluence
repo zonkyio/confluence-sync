@@ -20,7 +20,7 @@ next_version=$(curl -u ${JIRA_USER}:${JIRA_PASSWORD} -X GET -H 'Content-Type: ap
 
 mdtohtml ${SOURCE_FILE} /tmp/__${FNAME}
 
-curl -u ${JIRA_USER}:${JIRA_PASSWORD} -X PUT -H 'Content-Type: application/json' https://hcpeer2peer.atlassian.net/wiki/rest/api/content/${ID} \
+status_code=$(curl --silent --output /dev/stderr --write-out "%{http_code}" -u ${JIRA_USER}:${JIRA_PASSWORD} -X PUT -H 'Content-Type: application/json' https://hcpeer2peer.atlassian.net/wiki/rest/api/content/${ID} \
         -d @- << EOF
 {
   "id": "${ID}",
@@ -37,3 +37,13 @@ curl -u ${JIRA_USER}:${JIRA_PASSWORD} -X PUT -H 'Content-Type: application/json'
   }
 }
 EOF
+)
+
+echo "Confluence update status_code: ${status_code}"
+
+if test $status_code -ne 200; then
+  exit 1
+fi
+
+exit 0
+
